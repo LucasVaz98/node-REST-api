@@ -1,8 +1,29 @@
+const { response } = require("express");
 const express = require("express");
 const app = express();
+const http = require('http');
 
-app.use(express.json());
+http.createServer((request, response) => {
+    const { headers, method, url} = request;
+    let body = [];
 
-const listener = app.listen(process.env.PORT || 3000, () => {
-    console.log('App is listening  in port' + listener.address().port)
-})
+    request.on('error', (err) => {
+        console.error(err);
+    }).on('data', (chunk) => {
+        body.push(chunk);
+    }).on('end', () => {
+        body = Buffer.concat(body).toString();
+
+    
+        response.statusCode = 200;
+        response.setHeader('Content-Type', 'application/json');
+        const responseBody = {headers, method, url, body };
+    
+        response.write(JSON.stringify(responseBody));
+
+        response.on('error', (err) => {
+            console.error(err);
+        })
+        response.end()
+    })
+}).listen(8000);
